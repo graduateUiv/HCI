@@ -1,8 +1,10 @@
 package com.example.testtestaddphoto;
 
+import android.content.Intent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -30,7 +32,7 @@ public class FolderAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        FolderView folderView = null;
+        FolderView folderView;
         if(convertView==null){
             folderView = new FolderView(parent.getContext());
         }
@@ -39,6 +41,15 @@ public class FolderAdapter extends BaseAdapter {
         }
         Folder folder = items.get(position);
         folderView.setFolderName(folder.getFolderName());
+        folderView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(v.getContext(), position+"번째 선택", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(v.getContext(), ShowPhotoListActivity.class);
+                intent.putExtra("폴더", position);
+                v.getContext().startActivity(intent);
+            }
+        });
         return folderView;
     }
 

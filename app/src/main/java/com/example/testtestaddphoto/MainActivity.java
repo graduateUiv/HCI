@@ -5,29 +5,28 @@ import android.app.Activity;
 import android.content.ClipData;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.location.Address;
 import android.location.Geocoder;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageView;
+import android.widget.Button;
 import android.widget.Toast;
 import android.media.ExifInterface;
 
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentTransaction;
 
-import com.google.firebase.ml.vision.FirebaseVision;
-import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetector;
-import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetectorOptions;
 import com.gun0912.tedpermission.PermissionListener;
 import com.gun0912.tedpermission.TedPermission;
 
@@ -40,25 +39,23 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.firebase.ml.vision.common.FirebaseVisionImage;
+//import uk.co.senab.photoview.PhotoViewAttacher;
+
 
 
 public class MainActivity extends AppCompatActivity {
     private Boolean isPermission = true;
     private static final int PICK_FROM_ALBUM = 1;
     private String photoDate;
+    private String projectFolderName = "/HCI_TravelPhoto/";
     showLocationFolderFragment fragment_showFolder = new showLocationFolderFragment();
-
-
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
-        StrictMode.setVmPolicy(builder.build());
         tedPermission();
+
 
         findViewById(R.id.btnGallery).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -72,8 +69,56 @@ public class MainActivity extends AppCompatActivity {
         });
 
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.showLocationFragment, fragment_showFolder); // fragment삽입할 위치, fragment
+        transaction.replace(R.id.container, fragment_showFolder); // fragment삽입할 위치, fragment
 
+        Button mapButton = (Button) findViewById(R.id.btnMap);
+        mapButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplication(), MapPhotoActivity.class);
+                startActivity(intent);
+            }
+        });
+        mapButton.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                Intent intent = new Intent(getApplication(), MapPhotoActivity_c.class);
+                startActivity(intent);
+                return false;
+            }
+        });
+
+        
+        //상단 툴바 관련 코드
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar); //액션바를 툴바로 바꿔줌
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayShowCustomEnabled(true);
+        actionBar.setDisplayShowTitleEnabled(false); //기본 제목 없애기
+        actionBar.setDisplayHomeAsUpEnabled(true); //뒤로가기 버튼 생성
+
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu){
+        MenuInflater mi = getMenuInflater();
+        mi.inflate(R.menu.toolbar_option, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    //상단 툴바의 옵션 메뉴들
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        switch (item.getItemId()){
+            case R.id.edit:
+                break;
+            case R.id.setting:
+                break;
+            case android.R.id.home:
+                finish();
+                break;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
 
@@ -107,14 +152,13 @@ public class MainActivity extends AppCompatActivity {
                         }
                         else{
                             File photoFile = new File(imagePath);
-                            Bitmap bitmap = BitmapFactory.decodeFile(imagePath);
-                            FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(bitmap);
 
                             try {
 
                                 checkDate(photoFile);
                                 createDirectory();
                                 photoLocation = checkLocation(photoFile); //위치 받아오기
+                                saveInLocation(photoFile, photoLocation);
                                 FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
                                 transaction.detach(fragment_showFolder).attach(fragment_showFolder).commit();
 
@@ -122,66 +166,13 @@ public class MainActivity extends AppCompatActivity {
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
-
-                            initDetector(image, photoFile, photoLocation); //위치 + 인물 구별해서 폴더에 저장
                         }
                     }
-//                    FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-//                    transaction.detach(fragment_showFolder).attach(fragment_showFolder).commit();
 
                 }
             }
         }
     }
-
-
-    private void initDetector(FirebaseVisionImage image, File photoFile, String photoLocation) {
-        //얼굴인식 옵션. 정확성 높이는 옵션 추가.
-        FirebaseVisionFaceDetectorOptions detectorOptions = new FirebaseVisionFaceDetectorOptions
-                .Builder()
-                .setPerformanceMode(FirebaseVisionFaceDetectorOptions.ACCURATE)
-
-                .build();
-        FirebaseVisionFaceDetector faceDetector = FirebaseVision
-                .getInstance()
-                .getVisionFaceDetector(detectorOptions);
-
-        faceDetector.detectInImage(image).addOnSuccessListener(
-                faces -> {
-                    if (!faces.isEmpty()) { //인물사진일때
-                        System.out.println("인물!");
-                        File storageDir = new File(Environment.getExternalStorageDirectory() + "/addPhoto/" + photoLocation + "/" + "인물/");
-                        if (!storageDir.exists()) storageDir.mkdirs(); // 폴더가 존재하지 않는다면 생성
-                        File savedImageFile = new File(storageDir, photoFile.getName());
-
-                        try {
-                            copy(photoFile, savedImageFile);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-
-                    } else {
-                        System.out.println("인물 x!");
-                        File storageDir = new File(Environment.getExternalStorageDirectory() + "/addPhoto/" + photoLocation + "/" + "인물X/");
-                        if (!storageDir.exists()) storageDir.mkdirs(); // 폴더가 존재하지 않는다면 생성
-                        File savedImageFile = new File(storageDir, photoFile.getName());
-
-                        try {
-                            copy(photoFile, savedImageFile);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-
-                    }
-
-                });
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.detach(fragment_showFolder).attach(fragment_showFolder).commit(); // fragment 새로고침
-
-
-    }
-
-
 
     // 사진 URI 얻어오는 함수 : 2016년부터 ? 변경
     private String getRealPathFromURI(Uri contentURI) {
@@ -200,7 +191,6 @@ public class MainActivity extends AppCompatActivity {
 
     // 앨범에서 사진 선택
     private void goToAlbum() {
-
         Intent intent = new Intent(Intent.ACTION_PICK); //앨범 호출
         intent.setType(MediaStore.Images.Media.CONTENT_TYPE); //이미지 파일
         intent.putExtra(intent.EXTRA_ALLOW_MULTIPLE, true); // 다중 선택 가능
@@ -210,7 +200,7 @@ public class MainActivity extends AppCompatActivity {
 
     // 저장폴더 생성
     private void createDirectory() throws IOException {
-        File storageDir = new File(Environment.getExternalStorageDirectory() + "/addPhoto/");
+        File storageDir = new File(Environment.getExternalStorageDirectory() + projectFolderName);
         if (!storageDir.exists())
             storageDir.mkdirs(); // 폴더가 존재하지 않는다면 생성
     }
@@ -347,16 +337,16 @@ public class MainActivity extends AppCompatActivity {
         return (tag + " : " + exif.getAttribute(tag) + "\n");
     }
 
-//    private void saveInLocation(File photoFile) throws IOException {
-//        File storageDir = new File(Environment.getExternalStorageDirectory() + "/addPhoto/" + photoLocation + "/");
-//        if (!storageDir.exists()) storageDir.mkdirs(); // 폴더가 존재하지 않는다면 생성
-//        File savedImageFile = new File(storageDir, photoFile.getName());
-//
-//        Log.d("photoFile", photoFile.getName());
-//        Log.d("storage", storageDir.getAbsolutePath());
-//        Log.d("savedImageFile", savedImageFile.getPath());
-////        copy(photoFile, savedImageFile);
-//    }
+    private void saveInLocation(File photoFile, String photoLocation) throws IOException {
+        File storageDir = new File(Environment.getExternalStorageDirectory() + projectFolderName + photoLocation + "/");
+        if (!storageDir.exists()) storageDir.mkdirs(); // 폴더가 존재하지 않는다면 생성
+        File savedImageFile = new File(storageDir, photoFile.getName());
+
+        Log.d("photoFile", photoFile.getName());
+        Log.d("storage", storageDir.getAbsolutePath());
+        Log.d("savedImageFile", savedImageFile.getPath());
+        copy(photoFile, savedImageFile);
+    }
 
     private void checkDate(File photoFile) throws IOException {
         String fileName = photoFile.getPath();

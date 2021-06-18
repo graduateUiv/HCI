@@ -2,9 +2,11 @@ package com.example.testtestaddphoto;
 
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.Toast;
 
@@ -23,6 +25,7 @@ public class showLocationFolderFragment extends Fragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+    private String projectFolderName = "/HCI_TravelPhoto/";
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -67,7 +70,7 @@ public class showLocationFolderFragment extends Fragment {
         GridView gridView = v.findViewById(R.id.list);
         FolderAdapter adapter = new FolderAdapter();
 
-        File storageDir = new File(Environment.getExternalStorageDirectory() + "/addPhoto/");
+        File storageDir = new File(Environment.getExternalStorageDirectory() + projectFolderName);
         if (!storageDir.exists()) storageDir.mkdirs();
         File[] locationFoldersNames = storageDir.listFiles();
         if (locationFoldersNames != null) {
@@ -79,9 +82,8 @@ public class showLocationFolderFragment extends Fragment {
             } else {
                 Toast.makeText(getActivity(), "폴더없음!", Toast.LENGTH_LONG).show();
             }
-        }else{
+        } else {
             Toast.makeText(getActivity(), "폴더없음!", Toast.LENGTH_LONG).show();
-
         }
         return v;
     }

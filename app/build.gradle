@@ -45,4 +45,10 @@ dependencies {
     // If you want to detect face contours (landmark detection and classification
     // don't require this additional model):
     implementation 'com.google.firebase:firebase-ml-vision-face-model:20.0.1'
+
+    //PhotoView(사진 줌인, 줌아웃)
+ //   implementation 'com.github.chrisbanes:PhotoView:latest.release.here'
+  //  implementation 'com.github.chrisbanes.photoview:library:1.2.3'
+
+
 }

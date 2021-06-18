@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--
+        state_pressed="true"는 버튼 눌렀을 때 상태
+        2,3번째 item은 보통 상태
+
+    -->
+    <item
+        android:state_pressed="true"
+        android:drawable="@drawable/button_back_pressed"/>
+
+    <item
+        android:state_window_focused="false"
+        android:state_enabled="true"
+        android:drawable="@drawable/button_back_normal"/>
+
+    <item
+        android:state_enabled="true"
+        android:drawable="@drawable/button_back_normal"/>
+
+    <!--item //버튼비활성화
+        android:state_enabled="false"
+        android:drawable="@drawable/button_back_disabled"/-->
+
+</selector>

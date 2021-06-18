@@ -8,19 +8,27 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+
         android:orientation="vertical">
 
         <ImageButton
             android:id="@+id/folderButton"
             android:layout_width="100dp"
             android:layout_height="100dp"
-            app:srcCompat="@mipmap/foldericon_with_yellow" />
+            android:layout_marginLeft="20dp"
+            android:layout_marginTop="350dp"
+            android:background="#00ffffff"
+            app:srcCompat="@drawable/foldericon_with_yellow" />
 
         <TextView
             android:id="@+id/folderName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="TextView" />
+            android:layout_marginLeft="40dp"
+            android:layout_marginBottom="10dp"
+            android:background="?attr/selectableItemBackground"
+            android:text="TextView"
+            android:fontFamily="@font/custom_font_family"/>
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

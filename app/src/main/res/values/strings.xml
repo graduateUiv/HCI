@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">TestTestAddPhoto</string>
+    <string name="app_name">여행 사진을 부탁해!</string>
 
     <!-- Ted Permission -->
     <string name="permission_1">[설정] > [권한] 에서 권한을 허용할 수 있습니다.</string>
